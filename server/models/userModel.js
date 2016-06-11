@@ -21,29 +21,14 @@ module.exports = {
     });
   },
   createUser: function (displayname, googleid, name, cb) {
-    pg.connect(connectionString, function (err, client, done) {
-      if (err) {
-        done();
-        console.log('createUser error: ', err);
-      }
-      var queryAddUser = client.query('INSERT INTO users '
-        + '(displayname, google_id, name) '
-        + 'VALUES ($1, $2, $3)', [displayname, googleid, name]);
-      queryAddUser.on('end', function () {
-        done();
-        var queryRetrieveUser = client.query('SELECT * FROM users '
-          + 'WHERE displayname = $1', [displayname]);
-        var result = [];
-        queryRetrieveUser.on('row', function (row) {
-          result.push(row);
-        });
-        queryRetrieveUser.on('end', function () {
-          done();
-          return cb(null, result);
-        });
-      });
+    db.query({
+      text: "INSERT INTO users (displayname, google_id, name) VALUES ($1, $2, $3) RETURNING *",
+      values: [displayname, googleid, name],
+    }, function (err, data) {
+      return res.json(data.rows[0]);
     });
   },
+  // TODO refactor to abstact out postgres
   findOrCreate: function (profile, cb) {
     pg.connect(connectionString, function (err, client, done) {
       if (err) {
