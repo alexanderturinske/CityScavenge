@@ -13,18 +13,11 @@ module.exports = {
     });
   },
   findUser: function(field, value, cb) {
-    pg.connect(connectionString, function(err, client, done) {
-      // Handle connection errors
-      if (err) {
-        done();
-      }
-      // SQL Query > Retrieve data
-      var queryFindUserString = "SELECT * FROM users WHERE " + field + " = '" + value + "'";
-      // var queryFindUser = client.query("SELECT * FROM users WHERE google_id = '114510016389042396254'");
-      var queryFindUser = client.query(queryFindUserString, [], function (err, result) {
-        done();
-        return cb(null, result.rows);
-      });
+    db.query({
+      text: "SELECT * FROM users WHERE $1 = $2",
+      values: [field, value],
+    }, function (err, data) {
+      return cb(null, data.rows);
     });
   },
   createUser: function (displayname, googleid, name, cb) {
